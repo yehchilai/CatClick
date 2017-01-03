@@ -1,48 +1,101 @@
-// console.log("javascript");
-var clicks = [0,0,0,0,0];
+
 var catNames = ["Catty", "Kitty", "Citty", "Kit", "Cat"];
 var catImages = ["cat.jpg", "cat2.jpg", "cat3.jpg", "cat4.jpeg", "cat5.jpeg"];
 
-jQuery(document).ready(function ($) { //fire on DOM ready
+jQuery(document).ready(function ($){
 
-  var list = $('#list');
-  // main.after('<div class="col-md-3">');
-  for(var i = 0; i < catNames.length; i++){
-    var name = catNames[i];
-    var cNumber = clicks[i];
-    var cImage = catImages[i];
-    var elem = '<li id=\''+name+'\'>' + name + '</li>';
-    list.append(elem);
-    var elemClick = $('#'+name);
-    elemClick.click((function(catName, clickNumber, catImage, index){
+  $(function(){
 
-      return function(){
-        // current number of the image
-        $('#click').empty();
-        $('#click').text(clicks[index]);
-        // console.log(test);
+    var model = {
+
+      currentCat : null,
+
+      init: function(){
+          this.catData = [];
+      },
+      addCat: function(obj){
+        this.catData.push(obj);
+      },
+      setCurrentCat: function(cat){
+        currentCat = cat;
+      },
+      getAllCats: function(){
+        return this.catData;
+      }
+    };
+
+    var control = {
+      init: function(){
+        model.init();
+        control.addDataSet();
+        // console.log(model.catData);
+        listView.init();
+        view.init();
+      },
+      addDataSet:function(){
+        for(var i = 0; i < catNames.length; i++){
+          var obj = {"name" : catNames[i], "count": 0, "url": catImages[i]};
+          model.addCat(obj);
+        }
+      },
+      setCurrentCat: function(cat){
+        model.currentCat = cat;
+      },
+      getAllCats: function(){
+        return model.getAllCats();
+      },
+      increaseCount:function(){
+        model.currentCat.count++;
+      },
+      getCurrentCat: function(){
+        return model.currentCat;
+      }
+
+    };
+
+    // cat list view
+    var listView = {
+      init: function(){
+        this.elemList = $('#list');
+        this.render();
+      },
+      render:function(){
+        var cats = control.getAllCats();
+
+        for(var i = 0; i < cats.length; i++){
+          var elem = '<li id=\''+cats[i].name+'\'>' + cats[i].name + '</li>';
+          this.elemList.append(elem);
+          var elemClick = $('#'+cats[i].name);
+          elemClick.click((function(currentCat){
+            return function(){
+              control.setCurrentCat(currentCat);
+              view.render();
+            };
+          })(cats[i]));
+        }
+      }
+    };
+
+    // image and count view
+    var view = {
+      init: function(){
+        // this.imageView = $('#image');
+        // this.clickView = $('#click');
+        $('#image').click(function(){
+          var currentCat = control.getCurrentCat();
+          control.increaseCount();
+          if(currentCat) $('#click').text(currentCat.count);
+        });
+
+      },
+      render: function(){
+        var currentCat = control.getCurrentCat();
         $('#image').empty();
-        $('#image').append('<img id="Click'+catName+'" src="'+catImage+'">');
-        $('#Click'+catName).click((function(imgageIndex){
-          return function(){
-            console.log(imgageIndex);
-            clicks[imgageIndex]++;
-            $('#click').empty();
-            $('#click').text(clicks[index]);
-          }
-        })(index));
-      };
+        $('#image').attr('src', currentCat.url);
+        $('#click').text(currentCat.count);
+      }
+    }
+    control.init();
+  });
+});
 
-    })(name, cNumber, cImage, i));
-  }
-  // main.after('</div>');
-  // main.after('<div class="col-md-4"><h3>Click Number:</h3><h2 id="click"><h2></div>');
-  // main.after('<div id="image" class="col-md-5"></div>');
-})
-
-
-var clickIncrese = function(){
-  clicks++;
-  $('#clickNumber').text(clicks);
-  // console.log(clicks);
-};
